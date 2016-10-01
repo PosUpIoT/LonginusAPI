@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => '',
-	'password' => '',
-	'database' => '',
+	'hostname' => 'db.longinusapp.com',
+	'username' => 'longinusapp',
+	'password' => 'FZQinTqmLPMuckEZvdPLgfDtYb3aVExm',
+	'database' => 'longinusapp',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

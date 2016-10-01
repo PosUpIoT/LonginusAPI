@@ -17,17 +17,14 @@ class Posts extends REST_Controller {
         $this->methods['posts_get']['limit'] = 500; // 500 requests per hour per user/key
         $this->methods['posts_post']['limit'] = 100; // 100 requests per hour per user/key
         $this->methods['posts_delete']['limit'] = 50; // 50 requests per hour per user/key
+
+        $this->load->model("post_model");
     }
 
     public function posts_get()
-    {
-        $posts = [
-                ['id' => 1, 'title' => 'teste', 'description' => 'Teste de feed de post', 'type' => '1', 'status' => '1', 'latitude' => '-25.445641', 'longitude' => '-49.360237', 'category' => ['id' => 1, 'name' => 'animals'], 'user' => ['id' => 2, 'name' => 'João', 'email' => 'joao@outlook.com'], 'pictures'=>['https://s3-us-west-2.amazonaws.com/longinus/samplejpg','https://s3-us-west-2.amazonaws.com/longinus/sample1jpg','https://s3-us-west-2.amazonaws.com/longinus/sample2jpg'], 'create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05'],
-                ['id' => 2, 'title' => 'teste2', 'description' => 'Teste de feed de post 2', 'type' => '1', 'status' => '1', 'latitude' => '-25.445641', 'longitude' => '-49.360237', 'category' => ['id' => 2, 'name' => 'peoples'], 'user' => ['id' => 1, 'name' => 'Rafael', 'email' => 'rafael@outlook.com'],'pictures'=>['https://s3-us-west-2.amazonaws.com/longinus/samplejpg','https://s3-us-west-2.amazonaws.com/longinus/sample1jpg','https://s3-us-west-2.amazonaws.com/longinus/sample2jpg'], 'create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05'],
-                ['id' => 3, 'title' => 'teste3', 'description' => 'Teste de feed de post 3', 'type' => '1', 'status' => '1', 'latitude' => '-25.445641', 'longitude' => '-49.360237', 'category' => ['id' => 3, 'name' => 'vehicles'], 'user' => ['id' => 2, 'name' => 'Blabla', 'email' => 'blabla@outlook.com'],'pictures'=>['https://s3-us-west-2.amazonaws.com/longinus/samplejpg','https://s3-us-west-2.amazonaws.com/longinus/sample1jpg','https://s3-us-west-2.amazonaws.com/longinus/sample2jpg'], 'create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05']
-                ];       
+    { 
 
-        $id = $this->get('id');
+        
 
         /**
         Query for:
@@ -48,8 +45,52 @@ class Posts extends REST_Controller {
         lng
         **/
 
+        $id = $this->get('id');
+        $query = $this->query();
+
+        $posts = NULL;
+
         if ($id === NULL)
         {
+            
+
+            if (count($query) > 0){
+                $lon = $query['lon'];
+                $lat = $query['lat'];
+
+                $offset = $query['offset'];
+                $limit = $query['limit'];
+
+            }
+
+            if (!isset($limit) && !isset($offset)){
+                $limit = 50;
+                $offset = 0;
+            }
+
+            if (!isset($lat) && !isset($lon)){
+                $result = $this->post_model->getAllPosts($offset, $limit);
+                $countAll = $this->post_model->getCountAllPosts();
+            }else{
+                $result = $this->post_model->getPostsSearch($lat, $lon, 10000, $offset, $limit);
+                $qtde = $this->post_model->getCountCoordPosts($lat, $lon, 10000);
+
+                $countAll = $qtde['qtde'];
+            }
+
+            $posts = [
+                'metadata' =>
+                [
+                    'resultset' => 
+                    [
+                        'count' => $countAll,
+                        'offset' => $offset,
+                        'limit' => $limit,
+                    ]
+                ],
+                'results' => $result
+            ];
+
             if ($posts)
             {
                 $this->response($posts, REST_Controller::HTTP_OK);
@@ -62,36 +103,38 @@ class Posts extends REST_Controller {
                     'message' => 'No posts were found'
                 ], REST_Controller::HTTP_NOT_FOUND);
             }
-        }
 
-        $id = (int) $id;
-        if ($id <= 0)
-        {
-            $this->response(NULL, REST_Controller::HTTP_BAD_REQUEST);
-        }
-        $post = NULL;
-        if (!empty($posts))
-        {
-            foreach ($posts as $key => $value)
+        }else{
+            $id = (int) $id;
+            if ($id <= 0)
             {
-                if (isset($value['id']) && $value['id'] === $id)
+                $this->set_response([
+                    'status'  => REST_Controller::HTTP_NOT_FOUND,
+                    'errorCode'=> 121212,
+                    'message' => 'Post could not be found'
+                ], REST_Controller::HTTP_NOT_FOUND);
+            }else{
+                $posts = $this->post_model->getPost($id);
+
+                if (!empty($posts))
                 {
-                    $post = $value;
+                    $this->set_response($posts, REST_Controller::HTTP_OK);
                 }
+                else
+                {
+                    $this->set_response([
+                        'status'  => REST_Controller::HTTP_NOT_FOUND,
+                        'errorCode'=> 121212,
+                        'message' => 'Post could not be found'
+                    ], REST_Controller::HTTP_NOT_FOUND);
+                }                
             }
         }
-        if (!empty($post))
-        {
-            $this->set_response($post, REST_Controller::HTTP_OK);
-        }
-        else
-        {
-            $this->set_response([
-                'status'  => REST_Controller::HTTP_NOT_FOUND,
-                'errorCode'=> 121212,
-                'message' => 'Post could not be found'
-            ], REST_Controller::HTTP_NOT_FOUND);
-        }
+
+
+
+
+
     }
 
     public function posts_post()
