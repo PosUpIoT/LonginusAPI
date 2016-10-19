@@ -61,18 +61,17 @@ $route['translate_uri_dashes'] = TRUE;
 $route['api/v1/users/(:num)'] = '/users/users/id/$1';
 $route['api/v1/users/(:num)(\.)([a-zA-Z0-9_-]+)(.*)'] = '/users/users/id/$1/format/$3$4';
 
-
 $route['api/v1/posts'] = '/posts/posts/';
 $route['api/v1/posts/(:num)'] = '/posts/posts/id/$1';
 $route['api/v1/posts/(:num)(\.)([a-zA-Z0-9_-]+)(.*)'] = '/posts/posts/id/$1/format/$3$4'; 
 
+$route['api/v1/posts/(:num)/pictures'] = '/posts/pictures/id/$1';
 
 $route['api/v1/categories'] = '/categories/categories/';
 $route['api/v1/categories/(:num)'] = '/categories/categories/id/$1';
 $route['api/v1/categories/(:num)/properties'] = '/properties/properties/id/$1';
 $route['api/v1/categories/(:num)/properties/(:num)'] = '/properties/properties/id/$1/prop_id/$2';
 $route['api/v1/categories/(:num)(\.)([a-zA-Z0-9_-]+)(.*)'] = '/categories/categories/id/$1/format/$3$4'; 
-
 
 $route['api/v1/pictures'] = '/pictures/pictures/';
 $route['api/v1/pictures/(:num)'] = '/pictures/pictures/id/$1';

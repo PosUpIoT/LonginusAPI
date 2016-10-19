@@ -6,6 +6,12 @@ Class User_model extends CI_Model{
 		return $query->result_array();
 	}
 
+	public function getUser($id){
+		$data = array('id' => $id);
+		$query = $this->db->get_where('users',$data);
+		return $query->row();
+	}	
+
 	public function insertUser($data){
 		$this->db->insert('users', $data);
 	}

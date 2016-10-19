@@ -33,11 +33,18 @@ Class Post_model extends CI_Model{
 	}	
 
 	public function newPost($data){
-		$this->db->insert('posts', $data);
+		return $this->db->insert('posts', $data);
 	}
 
+	public function deletePost($postId) {
+		$this->db->where('id', $postId);
+		return $this->db->update('posts', ['delete_date' => date('Y-m-d H:i:s')]);
+	}
 
-
-
+	public function putPost($id, $data){
+		$this->db->where('id', $id);
+		$this->db->update('posts', $data);
+		return $this->db->update
+	}
 }
 ?>
