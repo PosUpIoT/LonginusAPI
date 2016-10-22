@@ -24,7 +24,7 @@ class Posts extends REST_Controller {
 		$this->load->model("user_model");
 		$this->load->model("category_model");
 
-		
+
 	}
 
 	public function posts_get() { 
@@ -99,7 +99,7 @@ class Posts extends REST_Controller {
 			{
 				$this->response([
 					'status'  => REST_Controller::HTTP_NOT_FOUND,
-					'errorCode'=> 121212,
+					'errorCode'=> 404,
 					'message' => 'No posts were found'
 				], REST_Controller::HTTP_NOT_FOUND);
 			}
@@ -110,7 +110,7 @@ class Posts extends REST_Controller {
 			{
 				$this->set_response([
 					'status'  => REST_Controller::HTTP_NOT_FOUND,
-					'errorCode'=> 121212,
+					'errorCode'=> 404,
 					'message' => 'Post could not be found'
 				], REST_Controller::HTTP_NOT_FOUND);
 			}else{
@@ -124,7 +124,7 @@ class Posts extends REST_Controller {
 				{
 					$this->set_response([
 						'status'  => REST_Controller::HTTP_NOT_FOUND,
-						'errorCode'=> 121212,
+						'errorCode'=> 404,
 						'message' => 'Post could not be found'
 					], REST_Controller::HTTP_NOT_FOUND);
 				}                
