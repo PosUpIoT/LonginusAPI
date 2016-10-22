@@ -1,9 +1,12 @@
 <?php
-Class Category_model extends CI_Model{
-	public function getCategories(){
-		$query = $this->db->get('categories');
+Class Category_model extends CI_Model {
+
+
+	public function getAll($page = 0, $limit = 10) {
+		$query = $this->db->get('categories', $limit, ($page <= 0 ? 0 : $page*$limit));
 		return $query->result_array();
 	}
+
 
 	public function getCategory($id){
 		$data = array('id' => $id);
@@ -15,10 +18,36 @@ Class Category_model extends CI_Model{
 	{
 		$query = $this->db->select('categories.*, category_properties.*')
 			->from('categories')
-			->join('category_properties', 'categories.id = category_properties.id_category', 'left')
-			->where(array('categories.name' => $category))
+			->where(array('id' => $id))
 			->get();
-		return $query->result_array();
-	}	
+		if(count($query->result_array()) > 0)
+		{
+			return $query->result_array()[0];
+		}else{
+            return NULL;
+		}
+	}
+
+	public function save($category) {
+		if (isset($category['id'])) {
+			return update($category);
+		}
+
+		return insert($category);
+	}
+
+	public function insert($category) {
+		return $this->db->insert('categories', $category);
+	}
+
+	public function update($category) {
+		return $this->db->update('categories', $category, array('id' => $category['id']));
+	}
+
+	public function delete($category_id) {
+		//INSERIR
+		return $this->db->delete('categories', array('id' => $category_id));
+	}
+
 }
 ?>
