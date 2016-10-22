@@ -56,11 +56,20 @@ class Posts extends REST_Controller {
 
 		if ($id === NULL) {
 			if (count($query) > 0) {
-				$lon = $query['lon'];
-				$lat = $query['lat'];
+				if (isset($query['lon']) && isset($query['lat'])){
+					$lon = $query['lon'];
+					$lat = $query['lat'];
+				}
+				if (isset($query['offset']) && isset($query['limit'])){
+					$offset = $query['offset'];
+					$limit = $query['limit'];
+				}
+				if(isset($query['title'])){
+					$titleSearch = $query['title'];
+					var_dump($titleSearch);
+				}
 
-				$offset = $query['offset'];
-				$limit = $query['limit'];
+
 			}
 
 			if (!isset($limit) && !isset($offset)){
@@ -68,14 +77,21 @@ class Posts extends REST_Controller {
 				$offset = 0;
 			}
 
-			if (!isset($lat) && !isset($lon)){
+			if ((!isset($lat) && !isset($lon)) && !isset($titleSearch)){
 				$result = $this->post_model->getAllPosts($offset, $limit);
 				$countAll = $this->post_model->getCountAllPosts();
 			} else {
-				$result = $this->post_model->getPostsSearch($lat, $lon, 10000, $offset, $limit);
-				$qtde = $this->post_model->getCountCoordPosts($lat, $lon, 10000);
+				if (isset($titleSearch)){
+					$result = $this->post_model->getPostsSearchTitle($titleSearch, 10000, $offset, $limit);
+					$qtde = $this->post_model->getCountPostsSearchTitle($titleSearch, 10000, $offset, $limit);
 
-				$countAll = $qtde['qtde'];
+					$countAll = $qtde['qtde'];
+				}else{
+					$result = $this->post_model->getPostsSearch($lat, $lon, 10000, $offset, $limit);
+					$qtde = $this->post_model->getCountCoordPosts($lat, $lon, 10000);
+
+					$countAll = $qtde['qtde'];
+				}
 			}
 
 			$posts = [
