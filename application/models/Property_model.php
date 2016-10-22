@@ -35,17 +35,17 @@ Class Property_model extends CI_Model {
 	}
 
 	public function insert($property) {
-		$property['create_date'] = date();
+		$property['create_date'] = date('Y-m-d H:i:s');
 		return $this->db->insert('category_properties', $property);
 	}
 
 	public function update($property) {
-		$property['update_date'] = date();
+		$property['update_date'] = date('Y-m-d H:i:s');
 		return $this->db->update('category_properties', $property, array('id' => $property['id'], 'id_category' => $property['id_category']));
 	}
 
 	public function delete($category_id, $property_id) {
-		return $this->db->update('category_properties', array('delete_date' => date()), array('id' => $property_id,'id_category'=>$category_id));
+		return $this->db->update('category_properties', array('delete_date' => date('Y-m-d H:i:s')), array('id' => $property_id,'id_category'=>$category_id));
 	}
 
 }
