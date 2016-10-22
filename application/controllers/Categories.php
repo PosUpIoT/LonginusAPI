@@ -65,7 +65,7 @@ class Categories extends REST_Controller {
                 'message' => 'One or more data is missing or failed validation'
             ], REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
         }else{
-            if ($this->category_model->insert(array('name' => $dataReceived))) {
+            if ($this->category_model->insert(array('name' => $dataReceived, 'create_date' => date()))) {
                     $this->set_response(['message' => 'Resource successfully created.'], REST_Controller::HTTP_CREATED);
             }else{
                 $this->set_response([
@@ -135,6 +135,7 @@ class Categories extends REST_Controller {
                 ], REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
             }else{
                 $category['name'] = $dataReceived;
+                $category['update_date'] = date();
                 if ($this->category_model->update($category)) {
                     $this->set_response([
                         'status'  => REST_Controller::HTTP_OK,
