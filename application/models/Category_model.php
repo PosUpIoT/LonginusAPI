@@ -30,7 +30,7 @@ Class Category_model extends CI_Model {
 	}
 
 	public function insert($category) {
-		$category[create_date'] = date('Y-m-d H:i:s');
+		$category['create_date'] = date('Y-m-d H:i:s');
 		return $this->db->insert('categories', $category);
 	}
 
