@@ -41,7 +41,7 @@ Class Category_model extends CI_Model {
 
 	public function delete($category_id) {
 		$this->db->set('delete_date', date('Y-m-d H:i:s'));
-		$this->db->where('id', $category['id']);
+		$this->db->where('id', $category_id);
 		return $this->db->update('categories');
 	}
 
