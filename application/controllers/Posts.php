@@ -144,7 +144,7 @@ class Posts extends REST_Controller {
 		$id_category 	= $this->post('id_category');
 		$id_user 		= $this->post('id_user');
 
-		$category = $this->category_model->getCategory($id_category);
+		$category = $this->category_model->getById($id_category);
 		$user = $this->user_model->getUser($id_user);
 		
 		if($category) {
