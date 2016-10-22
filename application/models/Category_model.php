@@ -7,9 +7,16 @@ Class Category_model extends CI_Model {
 		return $query->result_array();
 	}
 
-	public function getById($id) {
-		$query = $this->db
-			->select('*')
+
+	public function getCategory($id){
+		$data = array('id' => $id);
+		$query = $this->db->get_where('categories',$data);
+		return $query->row();
+	}	
+
+	public function getProperties($category)
+	{
+		$query = $this->db->select('categories.*, category_properties.*')
 			->from('categories')
 			->where(array('id' => $id))
 			->get();
