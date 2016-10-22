@@ -23,6 +23,7 @@ class Posts extends REST_Controller {
 		$this->load->model("picture_model");
 		$this->load->model("user_model");
 		$this->load->model("category_model");
+		
 	}
 
 	public function posts_get() { 
