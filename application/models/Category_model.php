@@ -30,16 +30,17 @@ Class Category_model extends CI_Model {
 	}
 
 	public function insert($category) {
+		$category[create_date'] = date('Y-m-d H:i:s');
 		return $this->db->insert('categories', $category);
 	}
 
 	public function update($category) {
+		$category['update_date'] = date('Y-m-d H:i:s');
 		return $this->db->update('categories', $category, array('id' => $category['id']));
 	}
 
 	public function delete($category_id) {
-		//INSERIR
-		return $this->db->update('categories', array('delete_date'=>date()), array('id' => $category['id']));
+		return $this->db->update('categories', array('delete_date'=>date('Y-m-d H:i:s')), array('id' => $category['id']));
 	}
 
 }
