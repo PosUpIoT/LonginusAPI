@@ -29,6 +29,5 @@ Class Picture_model extends CI_Model{
  	public function newPictures($data){  						// adicionar nova figura 
  		return $this->db->insert('pictures', $data); 
  	} 
-  
  }  
 ?>
