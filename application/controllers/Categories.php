@@ -46,7 +46,7 @@ class Categories extends REST_Controller {
                 {
                     $this->set_response([
                         'status'  => REST_Controller::HTTP_NOT_FOUND,
-                        'errorCode'=> 121212,
+                        'errorCode'=> 404,
                         'message' => 'Category could not be found'
                     ], REST_Controller::HTTP_NOT_FOUND);
                 }
