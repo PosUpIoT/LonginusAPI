@@ -47,7 +47,7 @@ class Categories extends REST_Controller {
                     $this->set_response([
                         'status'  => REST_Controller::HTTP_NOT_FOUND,
                         'errorCode'=> 404,
-                        'message' => 'Category could not be found'
+                        'message' => 'Categoria nao pode ser encontrada'
                     ], REST_Controller::HTTP_NOT_FOUND);
                 }
             }
@@ -62,7 +62,7 @@ class Categories extends REST_Controller {
             $this->response([
                 'status'  => REST_Controller::HTTP_UNPROCESSABLE_ENTITY,
                 'errorCode'=> 422,
-                'message' => 'One or more data is missing or failed validation'
+                'message' => 'Falha na validação'
             ], REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
         }else{
             if ($this->category_model->insert(array('name' => $dataReceived))) {
@@ -89,7 +89,7 @@ class Categories extends REST_Controller {
             ], REST_Controller::HTTP_BAD_REQUEST);
         }else{
             if ($this->category_model->delete($id)) {                
-                $this->set_response(['message' => 'Resource successfully deleted.'], REST_Controller::HTTP_OK);
+                $this->set_response(['message' => 'Resource foi deletada com sucesso.'], REST_Controller::HTTP_OK);
             }else{
                 $this->set_response([
                 'status'  => REST_Controller::HTTP_INTERNAL_SERVER_ERROR,
