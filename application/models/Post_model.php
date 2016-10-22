@@ -44,7 +44,7 @@ Class Post_model extends CI_Model{
 	public function putPost($id, $data){
 		$this->db->where('id', $id);
 		$this->db->update('posts', $data);
-		return $this->db->update
+		return $this->db->update;
 	}
 }
 ?>
