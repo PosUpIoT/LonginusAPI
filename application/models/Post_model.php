@@ -12,7 +12,7 @@ Class Post_model extends CI_Model{
  
 	public function getPostsSearch($myLatitude, $myLongitude, $max_distance = 10, $offset = 0, $limit= 50){
 
-		$query = $this->db->distinct()->select('* , ( 6371 * acos( cos( radians('.$myLatitude.') ) * cos( radians( posts.latitude ) ) * cos( radians( posts.longitude ) - radians('.$myLongitude.') ) + sin( radians('.$myLatitude.') ) * sin( radians( posts.latitude ) ) ) ) AS distance', FALSE)->from('posts')->having('distance <= '.$max_distance)->limit($limit, $offset)->get();
+		$query = $this->db->distinct()->select('* , ( 6371 * acos( cos( radians('.$myLatitude.') ) * cos( radians( posts.latitude ) ) * cos( radians( posts.longitude ) - radians('.$myLongitude.') ) + sin( radians('.$myLatitude.') ) * sin( radians( posts.latitude ) ) ) ) AS distance', FALSE)->from('posts')->having('distance <= '.$max_distance)->order_by('latitude DESC', 'longitude DESC')->limit($limit, $offset)->get();
 
 
 		return $query->result_array();
