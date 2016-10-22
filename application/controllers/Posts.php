@@ -162,6 +162,7 @@ class Posts extends REST_Controller {
 							'longitude' 	=> $longitude,
 							'id_category' 	=> $id_category,
 							'id_user' 		=> $id_user
+							'create_date'   => date('Y-m-d H:i:s')
 						]
 					);
 
