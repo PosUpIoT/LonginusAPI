@@ -294,7 +294,7 @@ class Posts extends REST_Controller {
 				'longitude'  => $longitude,
 				'id_category'  => $id_category,
 				'id_user'   => $id_user,
-				'update_date'   => $data       
+				'update_date'   =>   $data       
 			];
 
 			if ($this->post_model->putPost($id,$putArray)) {
