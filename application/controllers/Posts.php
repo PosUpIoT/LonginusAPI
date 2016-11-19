@@ -3,14 +3,17 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 // This can be removed if you use __autoload() in config.php OR use Modular Extensions
-require APPPATH . '/libraries/REST_Controller.php';
+//require APPPATH . '/libraries/REST_Controller.php';
+require APPPATH . '/libraries/Authentication.php';
 
-class Posts extends REST_Controller {
+class Posts extends REST_Controller{
 
 	function __construct()
 	{
 		// Construct the parent class
 		parent::__construct();
+
+
 
 		// Configure limits on our controller methods
 		// Ensure you have created the 'limits' table and enabled 'limits' within application/config/rest.php
@@ -27,27 +30,8 @@ class Posts extends REST_Controller {
 
 	}
 
-	public function posts_get() { 
-	
+	public function posts_get() {
 
-		/**
-		Query for:
-		query
-		searchType
-		category
-		sex
-		skin
-		age
-		height:
-		age:
-		height:
-		age:
-		height:
-		properties:
-		rad
-		lat
-		lng
-		**/
 
 		$id = $this->get('id');
 		$query = $this->query();
@@ -148,189 +132,197 @@ class Posts extends REST_Controller {
 		}
 	}
 
-	public function posts_post() {
+	public function posts_post(){
 
-		//Validação de dados
-		$title 			= $this->post('title');
-		$description 	= $this->post('description');
-		$type 			= $this->post('type');
-		$status 		= $this->post('status');
-		$latitude 		= $this->post('latitude');
-		$longitude 		= $this->post('longitude');
-		$id_category 	= $this->post('id_category');
-		$id_user 		= $this->post('id_user');
+		if ($this->isAuthenticated()){
 
-		$category = $this->category_model->getById($id_category);
-		$user = $this->user_model->getUser($id_user);
-		
-		if($category) {
+			//Validação de dados
+			$title 			= $this->post('title');
+			$description 	= $this->post('description');
+			$type 			= $this->post('type');
+			$status 		= $this->post('status');
+			$latitude 		= $this->post('latitude');
+			$longitude 		= $this->post('longitude');
+			$id_category 	= $this->post('id_category');
+			$id_user 		= $this->post('id_user');
 
-			if($user) {
+			$category = $this->category_model->getById($id_category);
+			$user = $this->user_model->getUser($id_user);
+			
+			if($category) {
 
-				if($title && $description && $type && $status && $latitude && $longitude) {
-					$retorno = $this->post_model->newPost(
+				if($user) {
+
+					if($title && $description && $type && $status && $latitude && $longitude) {
+						$retorno = $this->post_model->newPost(
+							[
+								'title' 		=> $title,
+								'description' 	=> $description,
+								'type' 			=> $type,
+								'status' 		=> $status,
+								'latitude' 		=> $latitude,
+								'longitude' 	=> $longitude,
+								'id_category' 	=> $id_category,
+								'id_user' 		=> $id_user,
+								'create_date'   => date('Y-m-d H:i:s')
+							]
+						);
+
+						if($retorno) {
+							$this->set_response(
+								[
+									'status'  => REST_Controller::HTTP_CREATED,
+									'message' => 'Resource created.'
+								], REST_Controller::HTTP_CREATED
+							);
+						} else {
+							$this->set_response(
+								[
+									'status'  => REST_Controller::HTTP_INTERNAL_SERVER_ERROR,
+									'errorCode'=> 500,
+									'message' => 'Unable to save the resource'
+								], REST_Controller::HTTP_INTERNAL_SERVER_ERROR
+							);
+						}
+
+					} else {
+						$this->set_response([
+							'status'  => REST_Controller::HTTP_UNPROCESSABLE_ENTITY,
+							'errorCode'=> 422,
+							'message' => 'One or more data is missing or failed validation'
+						], REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
+					}
+
+				} else {
+					$this->set_response(
 						[
-							'title' 		=> $title,
-							'description' 	=> $description,
-							'type' 			=> $type,
-							'status' 		=> $status,
-							'latitude' 		=> $latitude,
-							'longitude' 	=> $longitude,
-							'id_category' 	=> $id_category,
-							'id_user' 		=> $id_user,
-							'create_date'   => date('Y-m-d H:i:s')
-						]
+							'status' => REST_Controller::HTTP_NOT_FOUND,
+							'errorCode' => 404,
+							'message' => 'This user doesn\'t exist'
+						], REST_Controller::HTTP_NOT_FOUND
 					);
+				}
+			} else {
+				$this->set_response(
+					[
+						'status' => REST_Controller::HTTP_NOT_FOUND,
+						'errorCode' => 404,
+						'message' => 'This category doesn\'t exist'
+					], REST_Controller::HTTP_NOT_FOUND
+				);
+			}
+		}
+	}
+
+	public function posts_delete() {
+		if ($this->isAuthenticated()){
+
+			$id = (int) $this->get('id');
+
+			if ($id) {
+				$post = $this->post_model->getPost($id);
+
+				if($post) {
+					$retorno = $this->post_model->deletePost($id);
 
 					if($retorno) {
 						$this->set_response(
 							[
-								'status'  => REST_Controller::HTTP_CREATED,
-								'message' => 'Resource created.'
-							], REST_Controller::HTTP_CREATED
+								'status'  => REST_Controller::HTTP_OK,
+								'message' => 'Resource deleted.'
+							], REST_Controller::HTTP_OK
 						);
 					} else {
 						$this->set_response(
 							[
 								'status'  => REST_Controller::HTTP_INTERNAL_SERVER_ERROR,
 								'errorCode'=> 500,
-								'message' => 'Unable to save the resource'
+								'message' => 'Unable to delete the resource'
 							], REST_Controller::HTTP_INTERNAL_SERVER_ERROR
 						);
 					}
-
 				} else {
-					$this->set_response([
-						'status'  => REST_Controller::HTTP_UNPROCESSABLE_ENTITY,
-						'errorCode'=> 422,
-						'message' => 'One or more data is missing or failed validation'
-					], REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
+					$this->set_response(
+						[
+							'status' => REST_Controller::HTTP_NOT_FOUND,
+							'errorCode' => 404,
+							'message' => 'This post doesn\'t exist'
+						], REST_Controller::HTTP_NOT_FOUND
+					);
 				}
-
 			} else {
 				$this->set_response(
 					[
 						'status' => REST_Controller::HTTP_NOT_FOUND,
 						'errorCode' => 404,
-						'message' => 'This user doesn\'t exist'
+						'message' => 'This posts doesn\'t exist'
 					], REST_Controller::HTTP_NOT_FOUND
 				);
 			}
-		} else {
-			$this->set_response(
-				[
-					'status' => REST_Controller::HTTP_NOT_FOUND,
-					'errorCode' => 404,
-					'message' => 'This category doesn\'t exist'
-				], REST_Controller::HTTP_NOT_FOUND
-			);
 		}
 	}
 
-	public function posts_delete() {
-		$id = (int) $this->get('id');
+	public function posts_put() {
+		if ($this->isAuthenticated()){
 
-		if ($id) {
-			$post = $this->post_model->getPost($id);
+			$id = (int) $this->get('id');
 
-			if($post) {
-				$retorno = $this->post_model->deletePost($id);
+			if ($id === NULL && $id != '') {
+				$message = [
+					'status'  => REST_Controller::HTTP_UNPROCESSABLE_ENTITY,
+					'errorCode'=> 121212,
+					'message' => 'One or more data is missing, please try again or contact the administrator'
+				];
 
-				if($retorno) {
+				$this->response($message, REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
+
+			} else if ($id <= 0) {
+				$this->set_response(
+					[
+						'status'  => REST_Controller::HTTP_NOT_FOUND,
+						'errorCode'=> 121212,
+						'message' => 'Post could not be found'
+					], REST_Controller::HTTP_NOT_FOUND
+				);
+			} else {
+				$title    		= $this->put('title');
+				$description  	= $this->put('description');
+				$type    		= $this->put('type');
+				$status   		= $this->put('status');
+				$latitude   	= $this->put('latitude');
+				$longitude   	= $this->put('longitude');
+				$id_category  	= $this->put('id_category');
+				$id_user   		= $this->put('id_user');
+				$data 			= date('Y-m-d H:i:s');
+
+				$putArray = [
+					'title'   => $title,
+					'description'  => $description,
+					'type'    => $type,
+					'status'   => $status,
+					'latitude'   => $latitude,
+					'longitude'  =>  $longitude,
+					'id_category'  => $id_category,
+					'id_user'   => $id_user,
+					'update_date'   =>  $data       
+				];
+
+				if ($this->post_model->putPost($id,$putArray)) {
 					$this->set_response(
 						[
 							'status'  => REST_Controller::HTTP_OK,
-							'message' => 'Resource deleted.'
+							'message' => 'Post updated.'
 						], REST_Controller::HTTP_OK
 					);
 				} else {
 					$this->set_response(
 						[
-							'status'  => REST_Controller::HTTP_INTERNAL_SERVER_ERROR,
-							'errorCode'=> 500,
-							'message' => 'Unable to delete the resource'
-						], REST_Controller::HTTP_INTERNAL_SERVER_ERROR
+							'status'  => REST_Controller::HTTP_NOT_FOUND,
+							'errorCode'=> 121212,
+							'message' => 'Problems with your update, please try again or contact the administrator'
+						], REST_Controller::HTTP_NOT_FOUND
 					);
 				}
-			} else {
-				$this->set_response(
-					[
-						'status' => REST_Controller::HTTP_NOT_FOUND,
-						'errorCode' => 404,
-						'message' => 'This post doesn\'t exist'
-					], REST_Controller::HTTP_NOT_FOUND
-				);
-			}
-		} else {
-			$this->set_response(
-				[
-					'status' => REST_Controller::HTTP_NOT_FOUND,
-					'errorCode' => 404,
-					'message' => 'This posts doesn\'t exist'
-				], REST_Controller::HTTP_NOT_FOUND
-			);
-		}
-	}
-
-	public function posts_put() {
-
-		$id = (int) $this->get('id');
-
-		if ($id === NULL && $id != '') {
-			$message = [
-				'status'  => REST_Controller::HTTP_UNPROCESSABLE_ENTITY,
-				'errorCode'=> 121212,
-				'message' => 'One or more data is missing, please try again or contact the administrator'
-			];
-
-			$this->response($message, REST_Controller::HTTP_UNPROCESSABLE_ENTITY);
-
-		} else if ($id <= 0) {
-			$this->set_response(
-				[
-					'status'  => REST_Controller::HTTP_NOT_FOUND,
-					'errorCode'=> 121212,
-					'message' => 'Post could not be found'
-				], REST_Controller::HTTP_NOT_FOUND
-			);
-		} else {
-			$title    		= $this->put('title');
-			$description  	= $this->put('description');
-			$type    		= $this->put('type');
-			$status   		= $this->put('status');
-			$latitude   	= $this->put('latitude');
-			$longitude   	= $this->put('longitude');
-			$id_category  	= $this->put('id_category');
-			$id_user   		= $this->put('id_user');
-			$data 			= date('Y-m-d H:i:s');
-
-			$putArray = [
-				'title'   => $title,
-				'description'  => $description,
-				'type'    => $type,
-				'status'   => $status,
-				'latitude'   => $latitude,
-				'longitude'  =>  $longitude,
-				'id_category'  => $id_category,
-				'id_user'   => $id_user,
-				'update_date'   =>  $data       
-			];
-
-			if ($this->post_model->putPost($id,$putArray)) {
-				$this->set_response(
-					[
-						'status'  => REST_Controller::HTTP_OK,
-						'message' => 'Post updated.'
-					], REST_Controller::HTTP_OK
-				);
-			} else {
-				$this->set_response(
-					[
-						'status'  => REST_Controller::HTTP_NOT_FOUND,
-						'errorCode'=> 121212,
-						'message' => 'Problems with your update, please try again or contact the administrator'
-					], REST_Controller::HTTP_NOT_FOUND
-				);
 			}
 		}
 	}
@@ -364,6 +356,30 @@ class Posts extends REST_Controller {
 				], REST_Controller::HTTP_BAD_REQUEST
 			);
 		}
+	}
+
+	private function isAuthenticated(){
+		$header = $this->_head_args;
+
+		if (!isset($header['token'])){
+			$this->response([
+				'status'  => REST_Controller::HTTP_FORBIDDEN,
+				'errorCode'=> 403,
+				'message' => 'permission denied'
+			], REST_Controller::HTTP_FORBIDDEN);
+		}else{
+			if (!Authentication::validateToken($header['token'])){
+				$this->response([
+					'status'  => REST_Controller::HTTP_FORBIDDEN,
+					'errorCode'=> 403,
+					'message' => 'Token does not match'
+				], REST_Controller::HTTP_FORBIDDEN);
+			}else{
+				return TRUE;
+			}
+		}
+
+
 	}
 
 }
