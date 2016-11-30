@@ -3,7 +3,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 // This can be removed if you use __autoload() in config.php OR use Modular Extensions
-//require APPPATH . '/libraries/REST_Controller.php';
+require APPPATH . '/libraries/REST_Controller.php';
 require APPPATH . '/libraries/Authentication.php';
 
 class Posts extends REST_Controller{
@@ -50,10 +50,14 @@ class Posts extends REST_Controller{
 				}
 				if(isset($query['title'])){
 					$titleSearch = $query['title'];
-					var_dump($titleSearch);
 				}
-
-
+				if(isset($query['category'])){
+					$categorySearch = $query['category'];
+					var_dump($categorySearch);
+				}
+				if(isset($query['distance'])){
+					$distance = $query['distance'];
+				}				
 			}
 
 			if (!isset($limit) && !isset($offset)){
@@ -61,20 +65,48 @@ class Posts extends REST_Controller{
 				$offset = 0;
 			}
 
-			if ((!isset($lat) && !isset($lon)) && !isset($titleSearch)){
+			if (!isset($distance)){
+				$distance = 10000;
+			}
+
+			if ((!isset($lat) && !isset($lon)) && !isset($titleSearch) && !isset($categorySearch)){
 				$result = $this->post_model->getAllPosts($offset, $limit);
 				$countAll = $this->post_model->getCountAllPosts();
 			} else {
-				if (isset($titleSearch)){
-					$result = $this->post_model->getPostsSearchTitle($titleSearch, 10000, $offset, $limit);
-					$qtde = $this->post_model->getCountPostsSearchTitle($titleSearch, 10000, $offset, $limit);
+				if (isset($lat) && isset($lon)){
+					if (isset($titleSearch) && !isset($categorySearch)){
+						$result = $this->post_model->getPostsSearchTitle($lat, $lon, $titleSearch, $distance, $offset, $limit);
+						$qtde = $this->post_model->getCountPostsSearchTitle($lat, $lon, $titleSearch, $distance);
 
-					$countAll = $qtde['qtde'];
+						$countAll = $qtde['qtde'];
+					}else{
+						if (isset($categorySearch) && !isset($titleSearch)){
+							$result = $this->post_model->getPostsSearchCategory($lat, $lon, $categorySearch, $distance, $offset, $limit);
+							$qtde = $this->post_model->getCountPostsSearchCategory($lat, $lon, $categorySearch, $distance);
+
+							$countAll = $qtde['qtde'];
+						}else{
+							if (isset($titleSearch) && isset($categorySearch)){
+								$result = $this->post_model->getPostsSearchTitleCategory($lat, $lon, $titleSearch, $categorySearch, $distance, $offset, $limit);
+								$qtde = $this->post_model->getCountPostsSearchTitleCategory($lat, $lon, $titleSearch, $categorySearch, $distance);
+
+								$countAll = $qtde['qtde'];
+							}else{
+
+								$result = $this->post_model->getPostsSearch($lat, $lon, $distance, $offset, $limit);
+								$qtde = $this->post_model->getCountCoordPosts($lat, $lon, $distance);
+
+								$countAll = $qtde['qtde'];
+							}
+						}
+					}
+
 				}else{
-					$result = $this->post_model->getPostsSearch($lat, $lon, 10000, $offset, $limit);
-					$qtde = $this->post_model->getCountCoordPosts($lat, $lon, 10000);
-
-					$countAll = $qtde['qtde'];
+					$this->response([
+						'status'  => REST_Controller::HTTP_NOT_FOUND,
+						'errorCode'=> 404,
+						'message' => 'No posts were found, enter with latitude and longitude to filter'
+					], REST_Controller::HTTP_NOT_FOUND);
 				}
 			}
 

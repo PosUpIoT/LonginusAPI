@@ -21,6 +21,20 @@ Class Category_model extends CI_Model {
 		}
 	}
 
+	public function getByIdPost($id) {
+		$query = $this->db
+			->select('id, name')
+			->from('categories')
+			->where(array('id' => $id))
+			->get();
+		if(count($query->result_array()) > 0)
+		{
+			return $query->result_array()[0];
+		}else{
+            return NULL;
+		}
+	}
+
 	public function save($category) {
 		if (isset($category['id'])) {
 			return update($category);
