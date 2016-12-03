@@ -513,3 +513,4 @@ $config['rewrite_short_tags'] = FALSE;
 $config['proxy_ips'] = '';
 
 
+$config['salt'] = '52db85635e1c044e1f169c68143abc30';
