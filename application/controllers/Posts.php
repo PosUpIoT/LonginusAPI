@@ -53,17 +53,19 @@ class Posts extends REST_Controller{
 				}
 				if(isset($query['category'])){
 					$categorySearch = $query['category'];
-					var_dump($categorySearch);
 				}
 				if(isset($query['distance'])){
 					$distance = $query['distance'];
 				}				
 			}
 
-			if (!isset($limit) && !isset($offset)){
-				$limit = 50;
-				$offset = 0;
-			}
+            if (!isset($limit)){
+                $limit = 50;
+            }
+
+            if (!isset($offset)){
+                $offset = 0;
+            } 
 
 			if (!isset($distance)){
 				$distance = 10000;
