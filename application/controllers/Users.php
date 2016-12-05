@@ -23,54 +23,100 @@ class Users extends REST_Controller {
 
     public function users_get()
     {
-        $users = [
+
+        /*$users = [
             ['id' => 1, 'name' => 'John', 'email' => 'john@example.com', 'role' => 1, 'facebook'=>'https://www.facebook.com/thizaom','google'=>'https://plus.google.com/u/0/115634086300123564141','twitter'=>'http://www.twitter.com/thizaom','phone'=>'(41)99913738','create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05' ],
             ['id' => 2, 'name' => 'Jim', 'email' => 'jim@example.com', 'role' => 1, 'facebook'=>'https://www.facebook.com/thizaom','google'=>'https://plus.google.com/u/0/115634086300123564141','twitter'=>'http://www.twitter.com/thizaom','phone'=>'(41)99913738','create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05'  ],
             ['id' => 3, 'name' => 'Jane', 'email' => 'jane@example.com',  'role' => 1, 'facebook'=>'https://www.facebook.com/thizaom','google'=>'https://plus.google.com/u/0/115634086300123564141','twitter'=>'http://www.twitter.com/thizaom','phone'=>'(41)99913738','create_date'=>'2016-09-18 09:58:05','update_date'=>'2016-09-18 09:58:05' ],
-        ];
+        ];*/
 
         $id = $this->get('id');
-        if ($id === NULL)
-        {
-            if ($users)
+        $query = $this->query();
+
+        if ($id === NULL) {
+            if (count($query) > 0) {
+                if (isset($query['offset']) && isset($query['limit'])){
+                    $offset = $query['offset'];
+                    $limit = $query['limit'];
+                }
+                if(isset($query['email'])){
+                    $email = $query['email'];
+                }
+                if(isset($query['password'])){
+                    $password = $query['password'];
+                }           
+            }
+            if (!isset($limit)){
+                $limit = 50;
+            }
+
+            if (!isset($offset)){
+                $offset = 0;
+            }            
+
+            if (!isset($email) && !isset($password)){
+                $result = $this->user_model->getUsers($offset, $limit);
+                $countAll = $this->user_model->getCountUsers();                
+            }else{
+                $result = $this->user_model->getUserEmailPassword($email, $password);
+
+                if ($result){
+                    $countAll = 1;
+                }
+            }
+
+
+            $users = [
+                'metadata' =>
+                [
+                    'resultset' => 
+                    [
+                        'count' => $countAll,
+                        'offset' => $offset,
+                        'limit' => $limit,
+                    ]
+                ],
+                'results' => $result
+            ];
+
+            if ($result)
             {
                 $this->response($users, REST_Controller::HTTP_OK);
             }
             else
             {
-                // Set the response and exit
                 $this->response([
-                    'status' => FALSE,
+                    'status'  => REST_Controller::HTTP_NOT_FOUND,
+                    'errorCode'=> 404,
                     'message' => 'No users were found'
                 ], REST_Controller::HTTP_NOT_FOUND);
             }
-        }
-        $id = (int) $id;
-        if ($id <= 0)
-        {
-            $this->response(NULL, REST_Controller::HTTP_BAD_REQUEST);
-        }
-        $user = NULL;
-        if (!empty($users))
-        {
-            foreach ($users as $key => $value)
+
+        }else{
+            $id = (int) $id;
+            if ($id <= 0)
             {
-                if (isset($value['id']) && $value['id'] === $id)
+                $this->set_response([
+                    'status'  => REST_Controller::HTTP_NOT_FOUND,
+                    'errorCode'=> 404,
+                    'message' => 'Post could not be found'
+                ], REST_Controller::HTTP_NOT_FOUND);
+            }else{
+                $user = $this->user_model->getUser($id);
+
+                if (!empty($user))
                 {
-                    $user = $value;
+                    $this->set_response($user, REST_Controller::HTTP_OK);
                 }
+                else
+                {
+                    $this->set_response([
+                        'status'  => REST_Controller::HTTP_NOT_FOUND,
+                        'errorCode'=> 404,
+                        'message' => 'User could not be found'
+                    ], REST_Controller::HTTP_NOT_FOUND);
+                }                
             }
-        }
-        if (!empty($user))
-        {
-            $this->set_response($user, REST_Controller::HTTP_OK);
-        }
-        else
-        {
-            $this->set_response([
-                'status' => FALSE,
-                'message' => 'User could not be found'
-            ], REST_Controller::HTTP_NOT_FOUND);
         }
     }
 
@@ -90,32 +136,41 @@ class Users extends REST_Controller {
         if (!isset($social_network_id) && !isset($social_network_access_token)){
             if(isset($name) && isset($email) && isset($password) && isset($phone)) {
 
+                // verificar se o usuário com o email já está cadastrado no sistema
+                if (!$this->user_model->getUserEmail($email)){
+                    $data = array(
+                        'role'=>1,
+                        'name'=> $name,
+                        'email' => $email,
+                        'password' => md5($password), // run this via your password hashing function
+                        'phone' => $phone,
+                        'api_token' => Authentication::createToken($email, $password, $this->config->item('salt')),
+                        'create_date' => date('Y-m-d H:i:s')
+                    );
 
-                $data = array(
-                    'role'=>1,
-                    'name'=> $name,
-                    'email' => $email,
-                    'password' => md5($password), // run this via your password hashing function
-                    'phone' => $phone,
-                    'api_token' => Authentication::createToken($email, $password, $this->config->item('salt')),
-                    'create_date' => date('Y-m-d H:i:s')
-                );
+                    if ($this->user_model->insert_user($data)){
 
-                if ($this->user_model->insert_user($data)){
+                        $user = $this->user_model->getTokenUser($email, $password);
+
+                        $this->set_response(
+                            [
+                                'status'  => REST_Controller::HTTP_CREATED,
+                                'message' => 'User created.',
+                                'token' => $user['api_token']
+                            ], REST_Controller::HTTP_CREATED
+                        );
+                    }
+
+                }else{
                     $this->set_response(
                         [
-                            'status'  => REST_Controller::HTTP_CREATED,
-                            'message' => 'User created.'
-                        ], REST_Controller::HTTP_CREATED
-                    );
+                            'status' => REST_Controller::HTTP_BAD_REQUEST,
+                            'errorCode' => 400,
+                            'message' => 'Email or user already present in the system'
+                        ], REST_Controller::HTTP_BAD_REQUEST
+                    );   
                 }
 
-                $message = [
-                    'id' => 100,
-                    'name' => $this->post('name'),
-                    'email' => $this->post('email'),
-                    'message' => 'Added a user!'
-                ];
             }else{
                 $this->set_response(
                     [

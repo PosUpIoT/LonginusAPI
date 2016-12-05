@@ -14,7 +14,7 @@ class Authentication {
 
 		$CI->load->model("user_model");
 
-		if($CI->user_model->getToken($token)){
+		if($CI->user_model->getUserToken($token)){
 			return TRUE;
 		}else{
 			return FALSE;

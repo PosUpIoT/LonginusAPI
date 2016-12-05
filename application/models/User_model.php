@@ -2,9 +2,13 @@
 Class User_model extends CI_Model{
 	public function getUsers(){
 		//$query = $this->db->query("SELECT * FROM longinusapp.users;");
-		$query = $this->db->get('users');
+		$query = $this->db->select('id,role,name,email,api_token,phone,create_date')->from('users')->limit($limit, $offset)->get();;
 		return $query->result_array();
 	}
+
+	public function getCountUsers(){
+		return $this->db->count_all("users");
+	}		
 
 	public function getUser($id){
 		$data = array('id' => $id);
@@ -19,10 +23,42 @@ Class User_model extends CI_Model{
 		{
 			return $query->result_array()[0];
 		}else{
-            return NULL;
+            return FALSE;
 		}
-	}	
+	}
 
+
+	public function getUserToken($token){
+		$query = $this->db->select('1')->from("users")->where('api_token', $token)->get();
+
+		if($query->num_rows() > 0){
+			return $query->result_array()[0];
+		}else{
+			return FALSE;
+		}
+	}
+
+	public function getUserEmailPassword($email, $password){
+		$query = $this->db->select('*')->from('users')->where('email',$email)->where('password', md5($password))->get();
+
+		if($query->num_rows() > 0)
+		{
+			return $query->result_array()[0];
+		}else{
+            return FALSE;
+		}		
+	}
+
+	public function getUserEmail($email){
+		$query = $this->db->select('*')->from('users')->where('email',$email)->get();
+
+		if($query->num_rows() > 0)
+		{
+			return $query->result_array()[0];
+		}else{
+            return FALSE;
+		}		
+	}	
 
 	public function insert_user($data) {
 		return $this->db->insert('users', $data);
@@ -97,15 +133,6 @@ Class User_model extends CI_Model{
 		return false;
 	}
 
-	public function getToken($token){
-		$query = $this->db->select('1')->from("users")->where('api_token', $token)->get();
-
-		if($query->num_rows() > 0){
-			return TRUE;
-		}else{
-			return FALSE;
-		}
-	}
 
 
 
